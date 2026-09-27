@@ -9,7 +9,7 @@ flowchart TD
     Q[User query + optional SearchFilters] --> PAR[Parallel prep]
     PAR --> E[embed_query full query]
     PAR --> KW[extract_fts_keywords LLM]
-    E -->|OpenAI embedding| VEC[Query vector]
+    E -->|Gemini embedding| VEC[Query vector]
     KW --> FTSQ[3-5 keyword terms]
 
     VEC --> DUAL[semantic_search + full_text_search in parallel]
@@ -32,7 +32,7 @@ flowchart TD
 
 ### Step-by-step
 
-1. **Parallel prep** — `embed_query` embeds the **full** user query for semantic search. In parallel, `keywords.extract_fts_keywords` uses a small OpenAI model to distill 3–5 domain terms for full-text search (skipped for short, keyword-like queries). Search filters (e.g. ticker) are passed into extraction so redundant company names can be omitted.
+1. **Parallel prep** — `embed_query` embeds the **full** user query for semantic search. In parallel, `keywords.extract_fts_keywords` uses a lightweight Gemini model to distill 3–5 domain terms for full-text search (skipped for short, keyword-like queries). Search filters (e.g. ticker) are passed into extraction so redundant company names can be omitted.
 
 2. **Dual search (parallel)** — `retriever._dual_search` runs semantic and full-text queries concurrently, each on its own DB session. Semantic search orders by pgvector cosine distance (`<=>`); score is `1 - distance`. Full-text search runs `plainto_tsquery` on the extracted keyword string against the ingest-generated `search_vector` column and ranks with `ts_rank_cd`. Both return up to `candidate_k` hits.
 
@@ -55,12 +55,12 @@ All retrieval tuning lives in `app/config.py` and can be overridden via environm
 | `retrieval_rrf_k` | `60` | RRF constant `k` in `1 / (k + rank)` |
 | `retrieval_neighbor_radius` | `1` | Chunks before/after each hit to include (same document, by `chunk_index`) |
 | `retrieval_fts_config` | `"english"` | Postgres text search config for `plainto_tsquery` |
-| `retrieval_fts_keyword_model` | `"gpt-4.1-mini"` | Small model for FTS keyword extraction |
+| `retrieval_fts_keyword_model` | `"gemini-3.5-flash-lite"` | Fast model for FTS keyword extraction |
 | `retrieval_fts_keyword_min` | `3` | Minimum extracted FTS terms |
 | `retrieval_fts_keyword_max` | `5` | Maximum extracted FTS terms |
 | `retrieval_fts_keyword_fast_path_tokens` | `5` | Skip keyword LLM when query is this short |
-| `openai_embedding_model` | `"text-embedding-3-small"` | Model used for live query embeddings |
-| `openai_embedding_dimensions` | `1536` | Embedding width; must match ingested chunk vectors |
+| `gemini_embedding_model` | `"gemini-embedding-2"` | Model used for live query embeddings |
+| `embedding_dimensions` | `1536` | Embedding width; must match ingested chunk vectors |
 
 ### `DocumentRetriever.search` parameters
 
@@ -96,7 +96,7 @@ Unset fields apply no filter. Filters are ANDed together.
 | File | Responsibility |
 | --- | --- |
 | `retriever.py` | `DocumentRetriever` orchestrator: embed → search → fuse → hydrate |
-| `embeddings.py` | OpenAI query embedding |
+| `embeddings.py` | Google Gemini query embedding |
 | `keywords.py` | LLM keyword extraction for full-text search |
 | `queries.py` | pgvector semantic search + Postgres FTS SQL |
 | `fusion.py` | Reciprocal Rank Fusion |

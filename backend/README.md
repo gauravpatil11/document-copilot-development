@@ -6,7 +6,7 @@ FastAPI service for Document Copilot. Python 3.12+, managed with [uv](https://do
 
 ```bash
 cd backend
-cp .env.example .env   # fill in Supabase, Postgres, and OpenAI values
+cp .env.example .env   # fill in Supabase, Postgres, and Gemini values
 uv sync
 ```
 

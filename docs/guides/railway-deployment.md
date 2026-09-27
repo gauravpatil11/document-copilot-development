@@ -13,7 +13,7 @@ Have these ready:
 
 - A GitHub repo with this project pushed, or the local repo plus the Railway CLI.
 - A Supabase project from [Supabase setup](supabase-setup.md).
-- An OpenAI API key.
+- A Google Gemini API key.
 - Production source documents loaded in Supabase, or be ready to run ingestion after deploy.
 
 Use the direct Supabase Postgres URL for `DATABASE_URL`, not the transaction pooler URL.
@@ -35,7 +35,7 @@ SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your-anon-public-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-secret-key
 DATABASE_URL=postgresql://postgres:your-password@db.your-project-ref.supabase.co:5432/postgres
-OPENAI_API_KEY=sk-your-openai-api-key
+GEMINI_API_KEY=your-gemini-api-key
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 
@@ -117,7 +117,7 @@ printf "%s" "$SUPABASE_SERVICE_ROLE_KEY" | railway variable set SUPABASE_SERVICE
   --service document-copilot-backend \
   --skip-deploys
 
-printf "%s" "$OPENAI_API_KEY" | railway variable set OPENAI_API_KEY \
+printf "%s" "$GEMINI_API_KEY" | railway variable set GEMINI_API_KEY \
   --stdin \
   --service document-copilot-backend \
   --skip-deploys
